@@ -14,7 +14,7 @@ const meta = {};
 for (const [id, page] of Object.entries(pages)) {
   if (!page.file) continue;
   const relPath = `docs/pages/${page.file}`;
-  const out = execSync(`git log -1 --format=%h%x09%an%x09%ad --date=format:%Y-%m-%d -- "${relPath}"`, {
+  const out = execSync(`git log -1 --format=%h%x09%an%x09%ad "--date=format:%Y-%m-%d %H:%M" -- "${relPath}"`, {
     cwd: join(DOCS_DIR, '..'),
   }).toString().trim();
   if (!out) continue;
