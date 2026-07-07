@@ -64,22 +64,58 @@ zero 패킷.
 *같은 물리 스택*이 옆에서 보는 A/B 에게 다르게 보인다 — 떨군 아이템, 남의 손, 공용 상자. 빌드타임 SSR로
 A용으로 구운 스택은 lore가 A 기준으로 물리적으로 박혀 있으므로, B가 그 스택을 주워도 그대로 A 버전이 보인다
 — `PlayerPickupItemEvent` 같은 특정 이벤트를 못 쓰는 이유는, 아이템이 B 화면에 나타나는 경로가 줍기·상자
-열기·트레이드 등 무엇이든 **결국 컨테이너 패킷 하나로 수렴**하기 때문이다. 그래서 이벤트별 훅 대신 그
+열기·트레이드 등 무엇이든 **결국 clientbound 패킷 하나로 수렴**하기 때문이다. 그래서 이벤트별 훅 대신 그
 공통 병목(패킷)에서 한 번에 잡는다.
+
+진입점은 4개 — 컨테이너 아이템 2종(`ContainerSetSlot`/`ContainerSetContent`, 자기 인벤·공용 상자), 아이템
+하나를 보유한 엔티티의 메타데이터(`SetEntityData`, 드롭 아이템 + 아이템 디스플레이), 장비/남의 손
+(`SetEquipment`). craft-engine 도 `ItemPacketHandler`/`ItemDisplayPacketHandler`/`SetEquipmentListener`/
+`CommonItemPacketHandler` 로 같은 진입점들을 잡고 전부 같은 `s2c` 로 수렴시킨다 — Figment 도 넷 다
+[ClientsideOverlay] 하나로 처리한다(`item:core` 의 `ItemPacketRenderer`).
+
+**드롭 아이템·아이템 디스플레이 판별.** NMS `SynchedEntityData` 필드 id 는 엔티티 클래스 계층별로 독립적으로
+매겨지므로, "이 엔티티가 정확히 무슨 종류인가"는 accessor 만으로 알 수 없다. craft-engine 은 `AddEntity`
+패킷을 가로채 엔티티 id → 종류를 추적하는 레지스트리(`entityPacketHandlers()`)로 이를 해결하지만, 이는
+가구·수레·투사체 등 훨씬 넓은 엔티티 커버리지(종류별로 다른 후처리가 필요한 케이스)를 위한 범용 인프라다.
+Figment 는 "이 엔티티가 아이템을 하나 보유하고 있다"만 알면 충분하므로(오버레이 로직 자체는 드롭이든
+디스플레이든 동일) 더 가벼운 방법을 쓴다 — `ItemEntity.DATA_ITEM` 과 `Display.ItemDisplay.DATA_ITEM_STACK_ID`
+둘 다 알려진 accessor 로 등록해 두고(`ItemEntityDataCodec` 의 `itemDataAccessors`), 패킷의 `packedItems`
+가 둘 중 하나와 (id, serializer) 로 일치하면 그걸로 디코드한다. 두 accessor 는 서로 다른 엔티티 클래스
+계층에서 독립적으로 할당돼 값이 겹치지 않으므로 오검출 없이 정확하다 — entity-type 추적 인프라 없이도
+목적(둘 다 per-player 오버레이)을 달성한다. 종류별로 **다른** 처리(예: 드롭 전용 이름 포맷, 가구별 충돌
+판정)가 필요해지면 그때 craft-engine 처럼 `AddEntity`/`RemoveEntities` 추적을 추가한다(YAGNI).
 
 canonical 스택엔 `figment:item`(id) + `figment:v`(version) PDC 만 심고, clientbound 패킷을 받는
 플레이어마다 재작성한다. 이 PDC 는 클라 입장에서 **의미 없는 raw 데이터**다 — 게임 내 어디에도 표시되지
 않고, 클라가 이 값을 읽어 뭘 하지도 않는다. 서버가 나중에 "이 스택이 무슨 정의였는지" 되찾기 위해 자기
-자신에게 남긴 메모일 뿐이다. 클라가 실제로 보는 이름·lore·속성 등은 매번 통째로 다시 구워져 패킷에 실려
-오는 값이다(증분 diff 없음, 전체 교체).
+자신에게 남긴 메모일 뿐이다.
+
+**재작성은 전체 교체가 아니라 cosmetic 오버레이다(중요).** viewer 로 다시 구운 스택에서 **시각 전용
+컴포넌트만**(name/lore/model/색/툴팁) 뽑아 원본 패킷 스택 위에 덮는다. `DAMAGE`(내구도)·
+`ATTRIBUTE_MODIFIERS`·`ENCHANTMENTS` 등 **서버 truth 는 원본 그대로 둔다**. craft-engine
+`ModernNetworkItemHandler.s2c` 와 같은 정책이다.
+
+이유: **서버 전투·내구 계산은 canonical 스택 하나로만 이뤄진다.** clientbound 패킷은 화면일 뿐 서버가 이
+값으로 게임플레이를 계산하지 않는다. 그러니 패킷에서 내구도/속성을 바꿔봐야 화면과 서버가 어긋난 거짓말이
+될 뿐이다 — 내구도가 안 닳아 보이거나(전체 재빌드하면 `DAMAGE`=0 인 새 스택이 나감), 조건 분기로 붙였다
+뗀 attribute 가 시각에만 반영돼 "화면엔 없는데 실뎀은 강한" 혼란을 낳는다. **per-viewer 로 진짜 달라지는
+건 시각(name/lore/model)뿐**이고, attribute 같은 게임플레이 값의 분기는 빌드타임 SSR(지급 시점 canonical
+baking)로만 가능하다. 단 빌드타임 baking 은 지급 순간 고정이라 소유권이 바뀌어도 재평가되지 않는다 — 조건
+충족자에게만 실시간으로 효과를 주려면 아이템이 아니라 별도 게임플레이 시스템(held-item 리스너·player
+modifier)이 필요하다.
 
 ```kotlin
 // item:core 가 nms:api PacketBus 에 구독. 인터셉터 로직은 도메인(item:core)에 산다.
 PacketBus.subscribe<ContainerSetSlotPacket> { pkt ->
-    val def = registry.byPdc(pkt.item) ?: return@subscribe
-    pkt.item = service.render(def, pkt.player)     // per-receiver 재빌드
+    val id = ItemKeys.readId(pkt.item) ?: return@subscribe
+    val display = service.render(id, pkt.player) ?: return@subscribe
+    pkt.item = ClientsideOverlay.apply(pkt.item, display)   // cosmetic 만 덮음, 서버 truth 보존
 }
 ```
+
+**c2s 역변환(미구현, YAGNI):** craft-engine 은 클라→서버 패킷(창작탭 픽·모루·컨테이너 이동)에서 오버레이를
+원복하는 `c2s` 도 둔다(원본을 암호화 태그에 packing). 우리는 clientbound 만 만지고 서버 truth 를 애초에 안
+바꾸므로 지금은 불필요. 창작모드·모루 상호작용에서 문제가 실측되면 그때 추가.
 
 패킷 파이프라인 자체는 [packet-pipeline-internals.md](packet-pipeline-internals.md) 참조. craft-engine
 `CommonItemPacketHandler` 의 축소판이다.
@@ -174,6 +210,9 @@ override val migrators = mapOf(          // stateful 일 때만
   전부 [packet-pipeline-internals.md](packet-pipeline-internals.md) 함정 절을 따른다.
 - **재렌더 무한 루프** — SSR 이 재작성한 아이템을 다시 SSR 대상으로 잡지 않도록, 재작성 후 스택은 이미 최종형.
   canonical PDC 는 유지하되 재렌더 결과를 다시 patch 하지 않는다.
+- **cosmetic/mechanics 경계** — 공유 스택 SSR 오버레이([ClientsideOverlay])는 시각 컴포넌트만 덮는다.
+  게임플레이·상태 컴포넌트(`DAMAGE`/`ATTRIBUTE_MODIFIERS`/`ENCHANTMENTS`)를 오버레이에 넣으면 화면과 서버
+  truth 가 어긋난다. 새 옵션이 게임플레이에 영향을 주면 오버레이 세트에 넣지 않는다.
 - **stateful 오분류** — stateless 로 보고 통째 재렌더했는데 실은 플레이어 상태가 있었으면 데이터 유실.
   상태 있는 아이템은 반드시 `ItemMigrator` 로 표기.
 
