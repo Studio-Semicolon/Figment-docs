@@ -50,6 +50,17 @@ const navPane = document.getElementById('navPane');
 const mainPane = document.getElementById('mainPane');
 const tocPane = document.getElementById('tocPane');
 const searchOverlay = document.getElementById('searchOverlay');
+const navBackdrop = document.getElementById('navBackdrop');
+
+function closeNavDrawer() {
+  navPane.classList.remove('open');
+  navBackdrop.classList.remove('open');
+}
+
+function toggleNavDrawer() {
+  navPane.classList.toggle('open');
+  navBackdrop.classList.toggle('open');
+}
 
 function renderNavPane() {
   const navItems = flattenNav(NAV_TREE, { currentId: state.currentId, expanded: state.expanded, accent: ACCENT });
@@ -145,6 +156,7 @@ function go(id, { push = true } = {}) {
   renderNavPane();
   renderMainPane();
   renderSearchPane();
+  closeNavDrawer();
 }
 
 window.addEventListener('popstate', (e) => {
@@ -197,7 +209,9 @@ document.addEventListener('click', (e) => {
   const scrollEl = e.target.closest('[data-scroll-to]');
   if (scrollEl) { scrollToHeading(scrollEl.getAttribute('data-scroll-to')); return; }
   if (e.target.closest('#searchTriggerBtn')) { openSearch(); return; }
-  if (e.target.dataset && e.target.dataset.action === 'close-search') { closeSearch(); }
+  if (e.target.dataset && e.target.dataset.action === 'close-search') { closeSearch(); return; }
+  if (e.target.closest('#navToggleBtn')) { toggleNavDrawer(); return; }
+  if (e.target === navBackdrop) { closeNavDrawer(); }
 });
 
 document.addEventListener('input', (e) => {
