@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Figment Wiki</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+</head>
+<body>
+
+<div style="height:100vh;display:flex;flex-direction:column;background:oklch(0.165 0.004 106);color:#e6e3dc;font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden;">
+
+  <div style="height:52px;flex:none;display:flex;align-items:center;gap:20px;padding:0 24px;border-bottom:1px solid rgba(255,255,255,.07);">
+    <div style="display:flex;align-items:baseline;gap:10px;white-space:nowrap;">
+      <span style="font-weight:650;font-size:var(--fs-brand);letter-spacing:-.01em;">Docs for Figment</span>
+    </div>
+    <button id="searchTriggerBtn" style="margin-left:auto;min-width:180px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:3px;padding:6px 12px;color:rgba(230,227,220,.45);font-size:var(--fs-search-trigger);cursor:pointer;font-family:inherit;">
+      검색
+      <span style="font-family:'JetBrains Mono',monospace;font-size:var(--fs-kbd-hint);letter-spacing:.06em;color:rgba(230,227,220,.35);">CTRL K</span>
+    </button>
+  </div>
+
+  <div style="flex:1;display:flex;min-height:0;">
+    <div id="navPane" style="width:248px;flex:none;overflow-y:auto;padding:20px 14px 40px;border-right:1px solid rgba(255,255,255,.06);"></div>
+    <div id="mainPane" style="flex:1;overflow-y:auto;"></div>
+    <div id="tocPane" style="width:220px;flex:none;overflow-y:auto;padding:36px 22px;border-left:1px solid rgba(255,255,255,.06);"></div>
+  </div>
+
+  <div id="searchOverlay"></div>
+
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+html,body{margin:0;padding:0;background:oklch(0.165 0.004 106);-webkit-font-smoothing:antialiased;}
+:root{
+  --accent:#c8a862;
+  /* 브랜드 / 상단바 */
+  --fs-brand:18px;
+  --fs-search-trigger:12.5px;
+  --fs-kbd-hint:10px;
+  /* 좌측 사이드바 (내비게이션 트리) */
+  --fs-nav-section:12px;
+  --fs-nav-item:14px;
+  --fs-nav-stub-badge:10px;
+  /* 본문 헤더 */
+  --fs-crumb:11.5px;
+  --fs-h1:38px;
+  --fs-h2:20px;
+  --fs-h3:15.5px;
+  --fs-heading-chip:12px;
+  /* 본문 블록 */
+  --fs-body:15px;
+  --fs-caption:12px;
+  --fs-list-item:14.5px;
+  --fs-quote:14px;
+  --fs-callout-title:12px;
+  --fs-callout-body:14px;
+  --fs-table:14px;
+  --fs-table-header:12px;
+  --fs-footer-meta:11.5px;
+  /* 코드 블록 */
+  --fs-code-filename:11px;
+  --fs-code-import-path:10px;
+  --fs-code-block:12.5px;
+  /* 다이어그램 */
+  --fs-diagram-node:11.5px;
+  /* 우측 사이드바 (목차) */
+  --fs-toc-item:13.5px;
+  /* 검색 모달 */
+  --fs-search-input:14px;
+  --fs-search-esc-badge:9.5px;
+  --fs-search-result-title:13.5px;
+  --fs-search-result-crumb:11.5px;
+  --fs-search-empty:13px;
+}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@keyframes searchBackdropIn{from{opacity:0;}to{opacity:1;}}
+@keyframes searchPanelIn{from{opacity:0;transform:translateY(-8px) scale(.97);}to{opacity:1;transform:none;}}
+@keyframes searchBackdropOut{from{opacity:1;}to{opacity:0;}}
+@keyframes searchPanelOut{from{opacity:1;transform:none;}to{opacity:0;transform:translateY(-4px);}}
+*{box-sizing:border-box;}
+*{scrollbar-width:thin;scrollbar-color:oklch(0.78 0.02 85 / 0.18) transparent;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-thumb{background:oklch(0.78 0.02 85 / 0.18);border-radius:999px;}
+::-webkit-scrollbar-thumb:hover{background:oklch(0.78 0.05 85 / 0.32);}
+::-webkit-scrollbar-track{background:transparent;}
+code{font-family:'JetBrains Mono',ui-monospace,monospace;}
+code:not(pre code){
+  background:oklch(0.78 0.09 85 / 0.12);
+  border:1px solid oklch(0.78 0.09 85 / 0.22);
+  color:oklch(0.83 0.09 85);
+  padding:1.5px 6px;
+  border-radius:4px;
+  font-size:0.9em;
+  font-weight:500;
+  white-space:nowrap;
+}
+.nav-page:hover{color:#e6e3dc!important;}
+.toc-item:hover{color:#e6e3dc!important;}
+.search-result:hover{background:rgba(255,255,255,.06)!important;}
+#searchTriggerBtn:hover{border-color:rgba(255,255,255,.22)!important;color:rgba(230,227,220,.7)!important;}
