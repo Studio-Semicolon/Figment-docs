@@ -148,19 +148,25 @@ Paper 1.21.11 기준 **전 옵션이 Paper `ItemStack.setData(DataComponentTypes
 | `legacyModelData` | `CUSTOM_MODEL_DATA` | 정수 경로(`setCustomModelData(int)`) |
 | `enchant` | `ENCHANTMENTS` | |
 | `weapon`/`blockAttack`/`consumable` | `WEAPON`/`BLOCKS_ATTACKS`/`CONSUMABLE` | **NMS 어댑터**. blockAttack 감쇠·사운드는 바닐라 방패 기본값 |
-| `tooltipStyle` | `TOOLTIP_STYLE` | **NMS 어댑터** |
+| `tooltipStyle` | `TOOLTIP_STYLE` | `ItemMeta.setTooltipStyle` — **stable**, 어댑터 아님(아래 정정) |
 
-**NMS 어댑터(실험적 컴포넌트 경로):** Paper 의 DataComponent API 는 `@UnstableApiUsage` 라 버전 간 시그니처가
-흔들린다. 단일 버전 타겟 + paperweight(mojang 이름) 환경에선 **NMS `DataComponents` 경로가 더 안정적**이다
-(`.snippet` 의 Module 프로젝트 방식). `nms:api` 의 `ItemComponentAdapter`(impl `nms:v1_21_11`,
+**NMS 어댑터(실험적 컴포넌트 경로):** Paper 의 DataComponent API 일부는 `@UnstableApiUsage` 라 버전 간
+시그니처가 흔들린다. 단일 버전 타겟 + paperweight(mojang 이름) 환경에선 **NMS `DataComponents` 경로가 더
+안정적**이다(`.snippet` 의 Module 프로젝트 방식). `nms:api` 의 `ItemComponentAdapter`(impl `nms:v1_21_11`,
 `asNMSCopy` → set → `asBukkitCopy` 복원)가 이를 담당하고, `durability`/`consumable` 이 여기로 간다.
 
 현재 어댑터 커버: `durability`(`MAX_DAMAGE`), `consumable`(`CONSUMABLE`), `weapon`(`WEAPON`),
-`blockAttack`(`BLOCKS_ATTACKS`), `tooltipStyle`(`TOOLTIP_STYLE`).
+`blockAttack`(`BLOCKS_ATTACKS`).
+
+**정정(2026-07 실측):** `tooltipStyle` 은 원래 어댑터 경유였으나, `ItemMeta.setTooltipStyle(NamespacedKey)`
+가 1.21.11 기준 `@UnstableApiUsage` **없는 stable API** 로 확인돼 어댑터에서 뺐다(`PaperItemSpec.tooltipStyle`
+이 이제 `meta().setTooltipStyle(key)` 직접 호출). 다른 옵션도 이 판단이 오래됐을 수 있으니, 새 컴포넌트를
+어댑터에 넣기 전에 `paper-api` jar 의 해당 메서드에 `@UnstableApiUsage`/`@ApiStatus.Experimental` 이 실제로
+붙어 있는지 `javap -v` 로 먼저 확인한다(`.snippet/mc-src` 에 mojang-mapped 소스 + CraftBukkit 브릿지 풀려있음).
 
 Module 과 차이: Module 은 `ItemUseAnimation`(NMS)을 콜러에 노출하지만, 우리는 `ConsumeAnimation`(nms:api 자체
 enum)만 노출해 **도메인이 NMS·Paper-unstable 어느 쪽도 보지 않는다**. 안정 `ItemMeta` 로 충분한 옵션
-(name/lore/attribute/color/enchant/unbreakable 등)은 어댑터를 거치지 않는다.
+(name/lore/attribute/color/enchant/unbreakable/tooltipStyle 등)은 어댑터를 거치지 않는다.
 
 **제네릭 passthrough 는 두지 않는다.** 불안정 Paper API 를 도메인에 노출하게 되므로 의도적으로 뺐다. 타입드
 메서드가 없는 컴포넌트가 필요하면 `ItemComponentAdapter` 에 메서드를 추가한다(NMS record 시그니처는 paperweight

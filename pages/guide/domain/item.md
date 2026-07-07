@@ -82,7 +82,7 @@ class ItemGiveCommand(private val itemService: ItemService) {
 | `consumable(animation, particles = true)` | 섭취 가능 여부, `animation` 에 맞는 기본 섭취 사운드도 같이 설정된다. | 빌드타임 |
 | `weapon(itemDamagePerAttack = 1, disableBlockingForSeconds = 0f)` | 무기, `disableBlockingForSeconds` = 방어 무력화 시간(도끼 기본 5f). | **빌드타임** — 게임플레이 값이라 canonical 고정 |
 | `blockAttack(blockDelaySeconds = 0f, disableCooldownScale = 1f)` | 공격 방어(방패류), 감쇠·사운드는 바닐라 방패 기본값. | 빌드타임 |
-| `tooltipStyle(key)` | 툴팁 스타일 | 빌드타임 |
+| `tooltipStyle(key)` | 툴팁 스타일 | 가능 |
 
 ## 서버사이드 렌더 (SSR) {.experimental}
 
