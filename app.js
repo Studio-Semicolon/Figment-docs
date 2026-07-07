@@ -60,7 +60,7 @@ function buildTocItems() {
   const activeId = state.activeHeadingId || (currentH2s[0] && currentH2s[0].id);
   return currentH2s.map((h) => ({
     id: h.id, text: h.text,
-    color: h.id === activeId ? ACCENT : 'rgba(230,227,220,.5)',
+    color: h.id === activeId ? ACCENT : 'oklch(0.916 0.01 87.568 / 0.5)',
     weight: h.id === activeId ? 600 : 400,
     shift: h.id === activeId ? '0px' : '6px',
   }));

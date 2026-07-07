@@ -7,11 +7,11 @@ export function highlight(code, lang) {
   if (lang === 'md' || lang === 'text' || lang === 'diagram') return esc(code);
   const pattern = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|(@[A-Za-z_][A-Za-z0-9_]*)|(\b(?:fun|val|var|class|object|interface|override|private|public|protected|import|package|if|else|when|for|while|return|companion|init|const|vararg|is|in|as|typealias|sealed|enum|data|open|abstract|suspend|inline|internal|lateinit|null|true|false|this|super|new|void|static|final|extends|implements|throw|try|catch|finally)\b)|(\b\d+(?:\.\d+)?f?\b)/g;
   return esc(code).replace(pattern, (m, cm, str, ann, kw, num) => {
-    if (cm) return `<span style="color:#6b7280;font-style:italic">${cm}</span>`;
-    if (str) return `<span style="color:#98c379">${str}</span>`;
-    if (ann) return `<span style="color:#e5c07b">${ann}</span>`;
-    if (kw) return `<span style="color:#c678dd">${kw}</span>`;
-    if (num) return `<span style="color:#d19a66">${num}</span>`;
+    if (cm) return `<span style="color:oklch(0.55 0.02 264.358);font-style:italic">${cm}</span>`;
+    if (str) return `<span style="color:oklch(0.78 0.15 133)">${str}</span>`;
+    if (ann) return `<span style="color:oklch(0.825 0.1 82.27)">${ann}</span>`;
+    if (kw) return `<span style="color:oklch(0.7 0.164 318.2)">${kw}</span>`;
+    if (num) return `<span style="color:oklch(0.725 0.1 63.82)">${num}</span>`;
     return m;
   });
 }
@@ -58,25 +58,25 @@ export function slug(prefix, text) {
   return prefix + '-' + text.toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 24);
 }
 
-function hexToRgba(hex, alpha) {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
 
 // 헤딩 뒤 `{.chip-name}` 로 붙이는 상태 배지. 새 배지 추가 시 여기 한 줄만 늘리면 됨.
 const CHIP_VARIANTS = {
   experimental: { color: 'oklch(0.75 0.14 70)', label: '실험적' },
 };
 
-// note 는 사이트 accent(CSS 커스텀 프로퍼티)를 쓰므로 JS 에서 hex 계산이 안 돼 color-mix() 로 대체.
-const CALLOUT_VARIANTS = {
-  note: { accent: 'var(--accent)', bg: 'color-mix(in srgb, var(--accent) 6%, transparent)', label: 'Note' },
-  tip: { accent: '#7fae72', bg: hexToRgba('#7fae72', 0.06), label: 'Tip' },
-  warning: { accent: '#c9a34f', bg: hexToRgba('#c9a34f', 0.06), label: 'Warning' },
-  danger: { accent: '#c96a5c', bg: hexToRgba('#c96a5c', 0.06), label: 'Danger' },
-  performance: { accent: '#9c8ec4', bg: hexToRgba('#9c8ec4', 0.06), label: 'Performance' },
-};
+// accent 색상만 지정하면 bg 는 자동 계산. note 는 CSS 변수라 color-mix() 로 대체.
+const CALLOUT_VARIANTS = Object.fromEntries(Object.entries({
+  note:        { accent: 'var(--accent)',         label: 'Note' },
+  tip:         { accent: 'oklch(0.70 0.10 139)', label: 'Tip' },
+  warning:     { accent: 'oklch(0.70 0.12 54)',  label: 'Warning' },
+  danger:      { accent: 'oklch(0.70 0.14 26)',  label: 'Danger' },
+  performance: { accent: 'oklch(0.70 0.08 293)', label: 'Performance' },
+}).map(([k, v]) => [k, {
+  ...v,
+  bg: v.accent.startsWith('oklch(')
+    ? v.accent.replace(/\)$/, ' / 6%)')
+    : `color-mix(in srgb, ${v.accent} 6%, transparent)`,
+}]));
 
 export function normalize(pageId, blocks) {
   let hCount = 0;

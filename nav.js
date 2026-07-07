@@ -53,7 +53,7 @@ export function flattenNav(nodes, { currentId, expanded, accent, depth = 0 }, ou
       out.push({
         isPage: true, id: n.id, label: n.label, stub: !n.file,
         indent: 10 + depth * 14,
-        color: n.id === currentId ? accent : 'rgba(230,227,220,.72)',
+        color: n.id === currentId ? accent : 'oklch(0.9 0.01 87.5 / 0.7)',
         weight: n.id === currentId ? 600 : 400,
       });
     } else {

@@ -1,6 +1,6 @@
 html,body{margin:0;padding:0;background:oklch(0.165 0.004 106);-webkit-font-smoothing:antialiased;}
 :root{
-  --accent:#c8a862;
+  --accent:oklch(0.72 0.09 85.528);
   /* 브랜드 / 상단바 */
   --fs-brand:18px;
   --fs-search-trigger:12.5px;
@@ -62,7 +62,7 @@ code:not(pre code){
   font-weight:500;
   white-space:nowrap;
 }
-.nav-page:hover{color:#e6e3dc!important;}
-.toc-item:hover{color:#e6e3dc!important;}
-.search-result:hover{background:rgba(255,255,255,.06)!important;}
-#searchTriggerBtn:hover{border-color:rgba(255,255,255,.22)!important;color:rgba(230,227,220,.7)!important;}
+.nav-page:hover{color:oklch(0.916 0.01 87.568)!important;}
+.toc-item:hover{color:oklch(0.916 0.01 87.568)!important;}
+.search-result:hover{background:oklch(1 0 0 / 0.06)!important;}
+#searchTriggerBtn:hover{border-color:oklch(1 0 0 / 0.22)!important;color:oklch(0.916 0.01 87.568 / 0.7)!important;}
