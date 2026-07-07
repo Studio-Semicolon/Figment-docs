@@ -16,6 +16,8 @@ export const NAV_TREE = [
       { type: 'page', id: 'guide/domain/skill', label: '스킬'},
       { type: 'page', id: 'guide/domain/mob', label: '몹' },
       { type: 'page', id: 'guide/domain/combat', label: '전투' },
+      { type: 'page', id: 'guide/domain/visual', label: '비주얼' },
+      { type: 'page', id: 'guide/domain/biome', label: '바이옴' },
     ]},
   ]},
   { type: 'folder', key: 'architecture', label: '아키텍처', children: [
