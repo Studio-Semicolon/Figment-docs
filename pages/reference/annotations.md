@@ -33,7 +33,7 @@
 
 ## 도메인 — Dialog
 
-@Dialog 클래스 안에서 슬롯을 선언하는 어노테이션. 상세 사용법은 [도메인 가이드](nav:guide/domain/dialog) 참고.
+@Dialog 클래스 안에서 슬롯을 선언하는 어노테이션. 상세 사용법은 [다이얼로그 가이드](nav:guide/domain/dialog) 참고.
 
 | 어노테이션 | 대상 | 용도 |
 |:---|:---:|:---|
@@ -57,10 +57,10 @@ ItemBlueprint 구현 클래스에 선언하는 마커 어노테이션.
 
 ## 메타 어노테이션 메모
 
-`@Scannable` 이 선언된 어노테이션(`@Listener`, `@Command`, `@Dialog`)은 `@Bean` 없이도 KSP 가 자동 수집한다. 새 도메인 마커를 만들 때 `@Scannable` 을 메타로 선언하면 같은 메커니즘을 그대로 탄다 — 별도 수집 코드가 필요 없다. 원리는 [di.md](nav:guide/di) 참고.
+`@Scannable` 이 선언된 어노테이션(`@Listener`, `@Command`, `@Dialog`)은 `@Bean` 없이도 KSP 가 자동 수집한다. 새 도메인 마커를 만들 때 `@Scannable` 을 메타로 선언하면 같은 메커니즘을 그대로 탄다 — 별도 수집 코드가 필요 없다. 원리는 [DI](nav:guide/di) 참고.
 
 ## 관련 문서
 
-- [di.md](nav:guide/di)
-- [listener.md](nav:guide/listener)
-- [command.md](nav:guide/command)
+- [DI](nav:guide/di)
+- [리스너](nav:guide/listener)
+- [커맨드](nav:guide/command)

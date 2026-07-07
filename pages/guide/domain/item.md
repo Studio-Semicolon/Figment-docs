@@ -102,13 +102,18 @@ class ItemGiveCommand(private val itemService: ItemService) {
 플러그인 jar 로 배포되는 컨텐츠라 스펙이 업데이트 될 시 물리적으로 이미 지급된 아이템을 갱신해야 한다.
 
 - 스펙을 바꾸면 `version` 을 **손수 업데이트한다**.
-- **Stateless**(대부분): `migrators` 를 비워 둔다. 접속 시 통째로 재렌더된다.
-- **Stateful**(내구도·추가 인챈트 등 인스턴스 상태 보존): `migrators = mapOf(2 to ItemMigrator { old, ctx -> ... })` 로 버전별 변환을 준다.
+- **Stateless**(대부분): `migrators` 를 비워 둔다. 접속 시 통째로 재렌더된다. 수량과 **내구도(damage)는 자동
+  보존**되므로, 내구도만 지키면 되는 무기·도구도 그냥 stateless 로 둬도 된다(재렌더로 내구도가 풀회복되지 않음).
+- **Stateful**(내구도 **외** 인스턴스 상태 — 추가 인챈트·커스텀 데이터 보존, 또는 내구도를 값 그대로가 아니라
+  가공해 옮겨야 할 때): `migrators = mapOf(2 to ItemMigrator { old, ctx -> ... })` 로 버전별 변환을 준다.
 - 갱신 시점: 현재 **PlayerJoin**(인벤 훑기). "온라인 중 인벤 열 때"는 향후 추가 예정.
 
 ## 흔한 함정 (gotchas)
 
 :::danger
+- **`build(ctx)` 는 netty 스레드에서 불릴 수 있다**(공유 스택 SSR). `ctx.viewer` 는 **plain 필드만 읽어라** —
+  `level`/`name`/`uniqueId`/`locale` 등은 OK, `getNearbyEntities()`·`world.getBlockAt()`·인벤 변형 등
+  world/entity 조회는 **금지**(off-main 크래시·데드락). 조건부 게임플레이 효과는 아이템이 아니라 별도 시스템.
 - `unbreakable()` 과 `durability()` 를 같이 쓰지 않는다(파괴 불가가 내구도를 무시).
 - `render` 는 수량 1을 반환한다. 여러 개 지급하려면 반환 스택의 `amount` 를 조정한다(마이그레이션은 자동 보존).
 - `id` 는 배포 후 불변. 바꾸면 기존 아이템을 못 찾는다.

@@ -135,15 +135,17 @@ PacketBus.subscribe<ContainerSetSlotPacket> { it.item = render(it.item, it.playe
 
 ### item 공유 스택 SSR
 
-canonical 스택엔 `figment:item`(id) + `figment:v`(version) PDC 만. `item:core` 가:
+canonical 스택엔 `figment:item`(id) + `figment:item_version`(version) PDC 만. `item:core` 가:
 
 ```kotlin
 PacketBus.subscribe<ContainerSetSlotPacket> { pkt ->
-    val def = registry.byPdc(pkt.item) ?: return@subscribe
-    pkt.item = def.render(pkt.player)     // per-receiver 재빌드 → 같은 물리템, 다른 표시
+    val id = ItemKeys.readId(pkt.item) ?: return@subscribe
+    val display = service.render(id, pkt.player, cosmeticOnly = true) ?: return@subscribe
+    pkt.item = ClientsideOverlay.apply(pkt.item, display)   // cosmetic 만 덮음, 서버 truth 보존
 }
 ```
-craft-engine `CommonItemPacketHandler` 의 축소판. `ContainerSetContent`(인벤 전체)도 같은 방식.
+craft-engine `CommonItemPacketHandler` 의 축소판. `ContainerSetContent`(인벤 전체)도 같은 방식. 자세한
+내용(cosmetic overlay 범위, `cosmeticOnly` perf 근거)은 [item-internals.md](item-internals.md) 참고.
 
 ### 인벤 열기 감지 (Paragon trick) — 미구현
 
