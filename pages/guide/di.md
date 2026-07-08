@@ -92,6 +92,28 @@ class PaperDialogService(/* ... */) : DialogService, ManagedLifecycle {
 
 **멱등 필수.** 호출이 중복돼도 안전해야 한다. 호출 순서는 정의되지 않으므로 Bean 간 종료 순서에 의존하지 않는다.
 
+## 플레이어 세션 정리
+
+플레이어별 인메모리 상태(접속 중에만 유지, 서버 재시작 후엔 사라져도 되는 것 — 콤보 상태, HUD 세션, 활성 다이얼로그 등)는 `PlayerSessionHandler` 를 구현해 관리한다. `onJoin`/`onQuit` 중 필요한 메서드만 재정의하면 되고, `binds = [PlayerSessionHandler::class]` 로 등록하면 `PlayerSessionListener` 가 `PlayerJoinEvent`/`PlayerQuitEvent` 발생 시 자동으로 호출한다.
+
+```kotlin title="HUDManagerImpl.kt"
+@Bean(binds = [HUDManager::class, PlayerSessionHandler::class])
+class HUDManagerImpl(/* ... */) : HUDManager, PlayerSessionHandler {
+    override fun onQuit(player: Player) = clearAll(player)
+}
+```
+
+> 출처: `hud/core/.../impl/HUDManagerImpl.kt`
+
+같은 클래스가 다른 `binds` 인터페이스(`HUDManager`)와 `PlayerSessionHandler` 를 동시에 노출해도 된다. join/quit 라이프사이클과 무관한 영속 데이터(PDC)는 이 훅과 관계없이 필요한 시점에 직접 읽고 쓴다.
+
+:::danger
+- **호출 순서는 보장하지 않는다.** 한 핸들러의 `onJoin`/`onQuit` 이 다른 핸들러의 세션 데이터를 참조하면 안 된다.
+- **`onQuit`에서 반드시 정리한다.** `onJoin`에서 채운 상태는 `onQuit`에서 반드시 비운다 — `PlayerQuitEvent` 는 서버 종료 시에도 발행된다.
+:::
+
+> 정의: `framework/api/.../session/PlayerSessionHandler.kt`, `framework/core/.../session/PlayerSessionListener.kt`
+
 ## 자주 쓰는 옵션
 
 ### List<T> 로 같은 타입 Bean 전부 모으기
