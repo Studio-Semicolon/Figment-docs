@@ -66,7 +66,7 @@ when (service.addMarker(player, marker)) {
 | `setDeathMarker(player)` | 현재 위치에 사망 마커(가장자리 고정). 미니맵당 1개, 새로 찍으면 교체 |
 | `clearDeathMarker(player)` | 사망 마커 제거 |
 
-마커는 현재 **인메모리** 저장이라 서버 재시작 시 사라진다. 사망 마커는 `PlayerDeathEvent` 로 자동으로 찍힌다.
+현재 마커는 현재 **인메모리** 저장이라 서버 재시작 시 사라진다. 사망 마커는 `PlayerDeathEvent` 로 자동으로 찍힌다.
 
 ### 아이콘 등록
 
@@ -83,12 +83,41 @@ when (service.addMarker(player, marker)) {
 
 ## 탐험 및 안개 {.experimental}
 
-지나간 곳만 지도에 드러내고 나머지는 안개로 가리는 기능. **컴파일 타임 스위치**(`ExplorationConfig.ENABLED`, `minimap:core`)로 켠다 — 런타임 커맨드·config 토글은 없다. 기본 `false`(개발 서버 청크 PDC 누적 방지). 켜려면 그 상수를 `true` 로 바꿔 재빌드한다.
-
-안개는 **3×3 청크(48블록) 단위**로 걷힌다 — 그 9청크 중 한 곳에라도 들어서면 뭉치 전체가 드러난다. 안개 자체는 지형 위에 덮이는 안개 마커로 표현되고, 리소스팩 셰이더가 그 마커를 안개로 렌더한다.
-
 :::warning
-실험적 기능입니다. 안개 비주얼은 전용 셰이더(리소스팩)에 의존합니다 — 안개 마커는 헤더 컨트롤 바이트의 fog 플래그로 식별되고, 셰이더가 그 레이어의 footprint 픽셀을 안개로 렌더합니다. **셰이더 훅이 없으면** footprint 채움색(회색)이 그대로 사각형으로 보입니다.
+실험적 기능입니다. 안개 비주얼은 전용 셰이더(리소스팩)에 의존합니다.
+:::
+
+지나간 곳만 지도에 드러내고 나머지는 안개로 가리는 기능. **컴파일 타임 스위치**(`ExplorationConfig.ENABLED`, `minimap:core`)로 켠다 — 기본 `false`(개발 서버 청크 PDC 누적 방지). 켜려면 상수를 `true` 로 바꿔 재빌드한다.
+
+안개는 **3×3 청크(48블록) 단위**로 걷히며, 9청크 중 한 곳에라도 들어서면 뭉치 전체가 드러난다.
+
+### 탐험 이벤트
+
+플레이어가 새 청크를 처음 밟아 탐험 마킹되면 `MinimapChunkRevealedEvent`(`minimap:api`)가 발행된다. 일반 Bukkit 이벤트라 `@Listener` + `@Subscribe` 로 그대로 구독한다.
+
+```kotlin title="예시 리스너"
+@Listener
+class ExploreListener {
+    @Subscribe
+    fun onReveal(event: MinimapChunkRevealedEvent) {
+        event.player.playSound(event.player, Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.5f)
+    }
+}
+```
+
+### 마킹
+
+`MinimapService.revealArea(world, x, z)` 로 플레이어가 탐험하지 않은 청크를 해금할 수 있다. 반대로 `hideArea(world, x, z)` 로 다시 안개를 덮을 수 있다.
+
+```kotlin
+service.revealArea(player.world, x = 320, z = -140) // 퀘스트 보상 등으로 강제 해금
+service.hideArea(player.world, x = 320, z = -140)   // 다시 안개로 덮기
+```
+
+:::note
+탐험 상태는 플레이어별이 아니라 월드 전역이라 해당 월드 모든 플레이어의 안개가 걷히거나 다시 덮인다. 이동했을 때와 달리 `MinimapChunkRevealedEvent` 를 호출하지 않는다.
+
+**`revealArea`/`hideArea`는 비대칭이다** — 해금 판정이 "3×3 클러스터 9청크 중 하나라도 탐험" OR 조건이라, `revealArea`는 청크 하나만 마킹해도 클러스터 전체가 풀리지만 `hideArea`는 9청크를 **전부** unmark 해야 다시 덮인다.
 :::
 
 ## 자주 쓰는 옵션
@@ -100,7 +129,7 @@ when (service.addMarker(player, marker)) {
 
 :::danger
 - 아직까지 **활성화는 수동.** 접속 자동 활성이 없다. `enable` 을 호출하지 않으면 아무것도 안 보인다.
-- **마커는 재시작 시 사라진다.** 인메모리 저장이다. 영속이 필요하면 PDC 저장소로 교체해야 한다.
+- 현재 마커는 **재시작 시 사라진다.** 인메모리 저장이다. 영속이 필요하면 PDC 저장소로 교체해야 한다.
 - **블록 변경 반영은 대부분 즉시**(설치·파괴·폭발·피스톤·성장 등은 다음 틱 패치). 단 고빈도 이벤트(물리·물·용암·레드스톤 등)나 누락분은 최대 5초 TTL 후 재렌더로 반영된다.
 - **텔레포트 직후 미니맵이 흔들릴 수 있다.** 탑승 관계가 클라이언트에서 풀려 리스너가 **다음 틱**에 재스폰한다.
 :::
