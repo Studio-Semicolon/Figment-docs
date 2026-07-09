@@ -146,13 +146,10 @@ class IssuerBrandedSwordSample : ItemBlueprint {
 ## 흔한 함정 (gotchas)
 
 :::danger
-- **`build(ctx)` 는 netty 스레드에서 불릴 수 있다**(공유 스택 SSR). `ctx.viewer` 는 **plain 필드만 읽어라** —
-  `level`/`name`/`uniqueId`/`locale` 등은 OK, `getNearbyEntities()`·`world.getBlockAt()`·인벤 변형 등
-  world/entity 조회는 **금지**(off-main 크래시·데드락). 조건부 게임플레이 효과는 아이템이 아니라 별도 시스템.
+- **`build(ctx)` 는 netty 스레드에서 불릴 수 있다**(공유 스택 SSR). `ctx.viewer` 는 **plain 필드만 읽어야 한다.**
 - `unbreakable()` 과 `durability()` 를 같이 쓰지 않는다(파괴 불가가 내구도를 무시).
-- `render` 는 수량 1을 반환한다. 여러 개 지급하려면 반환 스택의 `amount` 를 조정한다(마이그레이션은 자동 보존).
-- `id` 는 배포 후 불변. 바꾸면 기존 아이템을 못 찾는다.
-- `color` 는 염색 가능한 아이템(가죽·포션)에만. 아니면 fail-fast.
+- `give` 는 수량 1을 반환한다. 여러 개를 지급하려면 반환 스택의 `amount` 를 조정한다.
+- `id` 는 배포 후 불변. 바꾸면 기존 아이템을 찾을 수 없다.
 :::
 
 ## 관련 문서
