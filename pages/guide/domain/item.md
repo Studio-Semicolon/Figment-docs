@@ -31,8 +31,7 @@ class TestSwordSample : ItemBlueprint {
 }
 ```
 
-지급은 `ItemService.render` 를 사용한다. `id` 는 `ItemService.ids()` 기반 자동완성(`@Suggests`)을 붙여
-등록된 어떤 정의든 하나의 커맨드로 지급하는 범용 형태다.
+지급은 `ItemService.give` 를 사용한다.
 
 ```kotlin title="ItemGiveCommand.kt"
 @Command(label = "item-test")
@@ -42,7 +41,7 @@ class ItemGiveCommand(private val itemService: ItemService) {
         @Sender player: Player,
         @Arg("id", suggests = "itemIds") id: String,
     ) {
-        val stack = itemService.render(ItemId(id), player) ?: return
+        val stack = itemService.give(ItemId(id), player) ?: return
         player.inventory.addItem(stack)
     }
 
@@ -96,6 +95,43 @@ class ItemGiveCommand(private val itemService: ItemService) {
 **두 경로로 나눈 이유** — 공유 스택 SSR 하나로 통일해도 동작은 하지만, 서버가 내보내는 모든 컨테이너 패킷을 netty 스레드에서 매번 재빌드하게 된다. GUI/보상처럼 한 명만 보는 다수 케이스에 그 비용을 물릴 이유가 없어서, "물리 스택을 여러 명이 봄"이 실제로 성립하는 경우만 공유 스택 SSR 을 태운다.
 
 **조건부로 실시간 게임플레이 효과를 주고 싶다면**(예: "레벨 10 이상만 공격력 보너스") 아이템 정의만으로는 안 된다 — 빌드타임 baking 은 지급 순간에 고정되고 소유권이 바뀌어도 재평가되지 않는다. 조건 충족 여부에 따라 실시간으로 켜고 끄려면 별도 게임플레이 시스템(held-item 리스너·player attribute modifier)이 필요하다.
+
+## 인스턴스별 고정 상태 {.experimental}
+
+두 축의 구분이 이 도메인의 핵심이다:
+
+| | SSR (`build`) | baked (`bake`)       |
+|:--|:--|:---------------------|
+| 출처 | viewer 파생 | 최초 파생                |
+| 계산 시점 | 매 렌더·매 패킷 | 지급 시 1회              |
+| 영속 | 안 됨(재계산) | PDC 에 고정             |
+| 예 | `소유자: ${ctx.viewer.name}` | `최초 발행: <recipient>` |
+
+`bake(recipient)` 가 지급 시점에 한 번 값을 만들고(맵), `build` 는 매 렌더에서 `ctx.data(key)` 로 그 값을 되읽는다. 한 슬롯 안에서 둘을 섞어도 된다 — 값의 **출처**로 갈릴 뿐 슬롯 단위 SSR on/off 가 아니다.
+
+```kotlin title="IssuerBrandedSwordSample.kt"
+@Item(id = "issuer_branded_sword")
+class IssuerBrandedSwordSample : ItemBlueprint {
+    // 지급 시 1회 — recipient(최초 소유자) 이름을 굽는다. 메인 스레드라 world 접근 안전.
+    override fun bake(recipient: Player): Map<String, String> = mapOf(BakedDataKeys.ISSUER to recipient.name)
+
+    override fun ItemSpec.build(ctx: ItemRenderContext) {
+        material(Material.GOLDEN_SWORD)
+        itemName(Component.text("각인된 검", NamedTextColor.GOLD))
+        val issuer = ctx.data(BakedDataKeys.ISSUER)   // 매 렌더에서 baked 값 되읽기 (누가 보든 동일)
+        lore(Component.text("최초 발행: ${issuer ?: "미각인"}", NamedTextColor.GRAY))
+    }
+}
+```
+
+:::tip
+- `bake` 는 값을 **선언만** 한다(`Map<String,String>` 반환).
+- 여러 정의가 재사용하는 baked 필드는 `BakedDataKeys` 에 상수로 둔다(`item:api`).
+- `bake` 맵의 **키는 소문자 PDC 키**(`[a-z0-9._-]`), 값은 **문자열**만 지원한다.
+- `ctx.data(key)` 는 `render` 에 `source` 스택이 없으면(fresh) 항상 `null` 이다.
+- baked 상태는 stateless 마이그레이션에서도 **자동 보존**된다.
+- `bake` 는 `attribute()` transient 주입과 다르다 — `attribute` 는 렌더 1회짜리, `bake` 는 PDC 영속.
+:::
 
 ## 아이템 업데이트 {.experimental}
 
