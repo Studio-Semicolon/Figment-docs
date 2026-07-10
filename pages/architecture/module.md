@@ -20,20 +20,23 @@ framework:api -> domain:core
 nms:api -> domain:core
 common -> domain:core
 domain:api -> domain:core
-domain:api -> game:content
+domain:api -> game:api
+game:api -> game:content
+game:api -> game:core
 game:content -> game:core
 game:core -> bootstrap
 ```
 
 - **game:content 는 도메인 api 만 안다.** 도메인 core 같은 구현체를 직접 참조하지 않는다.
+- **game:api 는 game 계층의 연결 계약.** 계약/배선 코드는 game:api·game:core 로 밀려나므로 game:content 에 남는 건 도메인 정의뿐이다.
 - **bootstrap 은 game:core 만 직접 의존**하고 나머지는 transitive.
 - **framework/common 은 도메인을 위로 의존하지 않는다.** 인프라가 특정 게임 도메인을 알면 재사용성이 깨진다.
 
 ## 좌표 충돌 회피
 
-여러 모듈이 같은 leaf 이름을 쓴다(framework:api, nms:api, dialog:api 전부 api). 좌표 충돌을 막기 위해 루트 build.gradle.kts 의 subprojects 블록이 group 을 `team.semicolon.${parent.name}` 으로 분리한다.
+여러 모듈이 같은 leaf 이름을 쓴다. 좌표 충돌을 막기 위해 루트 build.gradle.kts 의 subprojects 블록이 group 을 `team.semicolon.${parent.name}` 으로 분리한다.
 
-> 이 분리를 깨면 `:framework:api` 와 `:nms:api`, `:dialog:api` 좌표가 충돌해 Gradle 의존 해소가 실패한다.
+> 이 분리를 깨면 `:framework:api` 와 `:nms:api`, `:<domain>:api` 좌표가 충돌해 Gradle 의존 해소가 실패한다.
 
 ## 순환 의존 끊기
 

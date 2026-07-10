@@ -6,6 +6,7 @@
 | `@Scannable` | 어노테이션 | 메타 어노테이션. 이 어노테이션을 가진 클래스를 @Bean 없이 자동 수집 |
 | `@AnnotationHandler` | 클래스 | 특정 `@Scannable` 어노테이션의 라이프사이클 핸들러 표시 |
 | `@PluginDepend` | 클래스 | 열거된 외부 의존 플러그인이 모두 로드됐을 때만 등록(AND 조건) |
+| `@IdCatalog` | 어노테이션 | 메타 어노테이션. 부착된 도메인 어노테이션(`@Item`/`@Skill`)의 식별자 문자열을 타입 안전 상수 카탈로그 object 로 KSP 생성 |
 
 ## 프레임워크 — 리스너
 
@@ -53,11 +54,25 @@ ItemBlueprint 구현 클래스에 선언하는 마커 어노테이션.
 
 | 어노테이션 | 대상 | 용도 |
 |:---|:---:|:---|
-| `@Item` | 클래스 | 커스텀 아이템 정의 마커(`@Scannable`). id(비어 있지 않은 임의 문자열) 속성. 옵션은 ItemSpec 메서드로 선언 |
+| `@Item` | 클래스 | 커스텀 아이템 정의 마커(`@Scannable`). id(비어 있지 않은 임의 문자열) 속성. 옵션은 ItemSpec 메서드로 선언. `@IdCatalog` 로 `ItemIds` 상수 카탈로그 생성 |
+
+## 도메인 — Skill
+
+| 어노테이션 | 대상 | 용도 |
+|:---|:---:|:---|
+| `@Skill` | 클래스 | SkillDefinition 구현 마커(`@Scannable`). key 생략 시 클래스 simple name. `@IdCatalog` 로 `SkillKeys` 상수 카탈로그 생성 |
+
+## 도메인 — Combat(game)
+
+| 어노테이션 | 대상 | 용도 |
+|:---|:---:|:---|
+| `@ComboProfile` | 클래스 | 콤보→스킬 프로필 정의 마커(`@Scannable`, game:api). `ComboProfileDefinition` 을 함께 구현. |
 
 ## 메타 어노테이션 메모
 
-`@Scannable` 이 선언된 어노테이션(`@Listener`, `@Command`, `@Dialog`)은 `@Bean` 없이도 KSP 가 자동 수집한다. 새 도메인 마커를 만들 때 `@Scannable` 을 메타로 선언하면 같은 메커니즘을 그대로 탄다 — 별도 수집 코드가 필요 없다. 원리는 [DI](nav:guide/di) 참고.
+`@Scannable` 이 선언된 어노테이션(`@Listener`, `@Command`, `@Dialog`, `@ComboProfile`)은 `@Bean` 없이도 KSP 가 자동 수집한다. 새 도메인 마커를 만들 때 `@Scannable` 을 메타로 선언하면 같은 메커니즘을 그대로 탄다 — 별도 수집 코드가 필요 없다. 원리는 [DI](nav:guide/di) 참고.
+
+`@IdCatalog` 는 도메인 어노테이션에 부착하는 메타 어노테이션이다. `@Item`/`@Skill` 처럼 안정 식별자 문자열을 가진 마커에 붙이면, KSP 가 모든 사용처의 식별자를 모아 타입 안전 상수 카탈로그 object를 생성한다. 콘텐츠는 문자열 리터럴 대신 이 상수를 참조해 오타·rename 이 컴파일 타임에 잡힌다. 카탈로그는 `keyType` 패키지에 생성되며 사용처가 한 모듈에 모여 있어야 한다(모듈별 생성 시 동일 이름 object 충돌).
 
 ## 관련 문서
 
