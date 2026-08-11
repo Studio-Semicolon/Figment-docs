@@ -10,9 +10,9 @@
     "date": "2026-07-07 23:15"
   },
   "guide/di": {
-    "hash": "928f907",
+    "hash": "a93cdac",
     "author": "useemeonascreen",
-    "date": "2026-07-09 01:51"
+    "date": "2026-08-04 09:22"
   },
   "guide/listener": {
     "hash": "b7ac447",
@@ -20,9 +20,9 @@
     "date": "2026-07-07 23:15"
   },
   "guide/command": {
-    "hash": "b7ac447",
+    "hash": "cf78f2b",
     "author": "useemeonascreen",
-    "date": "2026-07-07 23:15"
+    "date": "2026-08-04 10:54"
   },
   "guide/coroutine": {
     "hash": "b7ac447",
@@ -55,8 +55,8 @@
     "date": "2026-07-10 16:39"
   },
   "reference/annotations": {
-    "hash": "73deca7",
+    "hash": "cf78f2b",
     "author": "useemeonascreen",
-    "date": "2026-07-10 16:39"
+    "date": "2026-08-04 10:54"
   }
 }

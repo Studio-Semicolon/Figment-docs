@@ -135,7 +135,13 @@ class PlayerArgumentTypeHandler : ArgumentTypeHandler<Player> { /* ... */ }
 
 ### 조건부 등록 — @PluginDepend
 
-외부 플러그인이 있을 때만 등록하려면 `@PluginDepend(plugins = ["CoreFrame"])` 를 함께 붙인다. AND 조건이며, 미충족 시 런타임 `ManifestLoader` 단계에서 제외된다. 의존하는 쪽에도 같은 `@PluginDepend` 를 붙이거나, 연동 전체를 그 Bean 안에 격리한다.
+외부 플러그인이 있을 때만 등록하려면 `@PluginDepend(plugins = ["CoreFrame"])` 를 함께 붙인다. AND 조건이며, 미충족 시 런타임 `ManifestLoader` 단계에서 제외된다. 제외된 클래스는 로딩조차 안 되므로 상대 플러그인 클래스를 직접 참조해도 `NoClassDefFoundError` 가 나지 않는다. 의존하는 쪽에도 같은 `@PluginDepend` 를 붙이거나, 연동 전체를 그 Bean 안에 격리한다.
+
+`@Bean` / `@Scannable` 계열뿐 아니라 **`@AnnotationHandler` 에도 적용된다.** 핸들러가 빠지면 그 어노테이션 카테고리 전체가 등록되지 않으므로, 대상 인스턴스에도 같은 `@PluginDepend` 를 붙여 함께 빠지게 한다. 제외될 때마다 `info` 로그로 클래스명과 없는 플러그인 이름이 남는다.
+
+:::warning
+`@PluginDepend` 는 **등록 여부만** 정하고 플러그인 **로드 순서는 바꾸지 않는다.** `getPlugin() != null` 은 "로드됨"이지 "enable 됨"이 아니다. 상대 플러그인 서비스는 생성자가 아니라 첫 사용 시점에 잡고, 순서 보장이 필요하면 `paperPluginYaml { }` 의 `dependencies` 에도 선언한다.
+:::
 
 > 정의: `framework/api/.../di/Annotations.kt`
 

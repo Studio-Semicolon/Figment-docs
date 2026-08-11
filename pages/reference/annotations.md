@@ -5,7 +5,7 @@
 | `@Bean` | 클래스 | singleton Bean으로 등록. binds = [...] 로 인터페이스 타입 노출 |
 | `@Scannable` | 어노테이션 | 메타 어노테이션. 이 어노테이션을 가진 클래스를 @Bean 없이 자동 수집 |
 | `@AnnotationHandler` | 클래스 | 특정 `@Scannable` 어노테이션의 라이프사이클 핸들러 표시 |
-| `@PluginDepend` | 클래스 | 열거된 외부 의존 플러그인이 모두 로드됐을 때만 등록(AND 조건) |
+| `@PluginDepend` | 클래스 | 열거된 외부 의존 플러그인이 모두 로드됐을 때만 등록(AND 조건). `@Bean`/`@Scannable` 계열과 `@AnnotationHandler` 양쪽에 적용 |
 | `@IdCatalog` | 어노테이션 | 메타 어노테이션. 부착된 도메인 어노테이션(`@Item`/`@Skill`)의 식별자 문자열을 타입 안전 상수 카탈로그 object 로 KSP 생성 |
 
 ## 프레임워크 — 리스너
@@ -20,11 +20,12 @@
 | 어노테이션 | 대상 | 용도 |
 |:---|:---:|:---|
 | `@Command` | 클래스 | 커맨드 마커(`@Scannable`). label/aliases/parent/description 속성 |
-| `@Child` | 메서드 | 서브커맨드 경로. `@Child("")` 는 루트 |
+| `@Permission` | 클래스/메서드 | 실행 권한 노드(들). 클래스+메서드 둘 다 있으면 AND. 여러 노드면 `mode` 로 조합(ANY_OF/ALL_OF) |
+| `@Child` | 메서드 | 서브커맨드 경로. `@Child("")` 는 루트. `suspend fun` 가능 |
 | `@Sender` | 파라미터 | 실행자(CommandSender) 구체 타입 제한 |
 | `@Arg` | 파라미터 | 필수 인자. suggests 로 자동완성 키 연결 |
 | `@OptionalArg` | 파라미터 | 선택 인자(미입력 시 null) |
-| `@Suggests` | 메서드 | 자동완성 제공자. `@Arg(suggests=)` 키와 매칭 |
+| `@Suggests` | 메서드 | 자동완성 제공자. `@Arg(suggests=)` 키와 매칭. `suspend fun` 가능(오프스레드 조회) |
 | `@StringType` | 파라미터 | String 인자 파싱 방식(WORD / STRING / GREEDY) |
 | `@IntRange` | 파라미터 | 정수 인자 범위 검증(kotlin.ranges.IntRange 아님). |
 | `@LongRange` | 파라미터 | Long 인자 범위 검증 |
