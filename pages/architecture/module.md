@@ -14,7 +14,7 @@
 common -> framework:api
 common -> nms:api
 nms:api -> nms:core
-nms:api -> nms:v1_21_11
+nms:api -> nms:v26_3
 framework:api -> domain:api
 framework:api -> domain:core
 nms:api -> domain:core

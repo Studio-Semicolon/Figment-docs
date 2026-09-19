@@ -38,7 +38,7 @@ class SnbtPayloadCodecImpl : SnbtPayloadCodec {
 }
 ```
 
-> 출처: `nms/v1_21_11/.../SnbtPayloadCodecImpl.kt`
+> 출처: `nms/v26_3/.../SnbtPayloadCodecImpl.kt`
 
 이러면 다른 Bean이 `SnbtPayloadCodec`(인터페이스) 타입으로 주입받는다. NMS 버전 교체 시 구현만 갈아끼우고 소비자는 그대로 둔다.
 
